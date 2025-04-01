@@ -64,15 +64,16 @@ contract BlindAuction {
     }
 
     function reveal(uint value, bytes32 secret) public validPhase(Phase.Reveal) {
+        // Note uint value must be correctly parsed for ether in wei
         require(msg.sender != beneficiary,'beneficiaryReveal');
         uint refund = 0;
         Bid storage bidToCheck = bids[msg.sender];
 
         if (bidToCheck.blindedBid == keccak256(abi.encodePacked(value, secret))) {
             refund += bidToCheck.deposit;
-            if (bidToCheck.deposit >= value*1000000000000000000) {
-                if (placeBid(msg.sender, value*1000000000000000000))
-                    refund -= value * 1000000000000000000;
+            if (bidToCheck.deposit >= value) {
+                if (placeBid(msg.sender, value))
+                    refund -= value;
             }
         }
         // Return the remaining deposit (if any)
