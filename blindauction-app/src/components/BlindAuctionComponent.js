@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import useContract from "../hooks/useContract";
+import { ethers } from "ethers";
 
 const phaseMap = {
   0: "Bidding Not Started",
@@ -31,6 +32,10 @@ const BlindAuctionComponent = () => {
 
   const [revealValue, setRevealValue] = useState("");
   const [revealSecret, setRevealSecret] = useState("");
+
+  const [bidValue, setBidValue] = useState("");
+  const [bidSecret, setBidSecret] = useState("");
+  const [generatedBlindedBid, setGeneratedBlindedBid] = useState("");
 
   useEffect(() => {
     const loadAccount = async () => {
@@ -87,6 +92,30 @@ const BlindAuctionComponent = () => {
     }
   };
 
+  const generateBlindedBid = (e) => {
+    e.preventDefault();
+    try {
+      if (!bidValue || !bidSecret) {
+        console.error("Missing bid value or secret");
+        return;
+      }
+
+      const bidAmountInWei = ethers.utils.parseEther(bidValue);
+      const secretBytes32 = ethers.utils.formatBytes32String(bidSecret);
+
+      const blindedBid = ethers.utils.solidityKeccak256(
+        ["uint256", "bytes32"],
+        [bidAmountInWei, secretBytes32]
+      );
+
+      setGeneratedBlindedBid(blindedBid);
+      setBlindedBid(blindedBid); // Automatically set it in the bid form
+      setDepositEth(bidValue); // Automatically set it in the bid form
+    } catch (error) {
+      console.error("Error generating blinded bid:", error);
+    }
+  };
+
   const handleReveal = async (e) => {
     e.preventDefault();
     if (!revealValue || !revealSecret) {
@@ -127,7 +156,9 @@ const BlindAuctionComponent = () => {
   };
 
   const isBeneficiary =
-    beneficiary && account && beneficiary.toLowerCase() === account.toLowerCase();
+    beneficiary &&
+    account &&
+    beneficiary.toLowerCase() === account.toLowerCase();
   const highestBidFormatted = highestBid || "0";
 
   return (
@@ -179,6 +210,45 @@ const BlindAuctionComponent = () => {
       {!isBeneficiary && (
         <div className="auction-bidder card">
           <h3>Bidder Panel</h3>
+
+          <div className="generate-bid-section card">
+            <h4>Generate Blinded Bid</h4>
+            <form onSubmit={generateBlindedBid}>
+              <label>Bid Amount (ETH):</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g., 0.1"
+                value={bidValue}
+                onChange={(e) => setBidValue(e.target.value)}
+              />
+
+              <label>Secret:</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Your secret text"
+                value={bidSecret}
+                onChange={(e) => setBidSecret(e.target.value)}
+              />
+
+              <button type="submit" className="btn primary">
+                Generate Blinded Bid
+              </button>
+            </form>
+
+            {generatedBlindedBid && (
+              <div className="result-section">
+                <h4>Generated Blinded Bid:</h4>
+                <div className="generated-bid">{generatedBlindedBid}</div>
+                <p className="note">The Blinded Bid Formula : </p>
+                <p className="note">
+                  keccak256(abi.encodePacked(valueInWei, secretInBytes32)){" "}
+                </p>
+              </div>
+            )}
+          </div>
+
           <form className="bid-form" onSubmit={handleBid}>
             <label>Blinded Bid (bytes32):</label>
             <input
@@ -232,11 +302,7 @@ const BlindAuctionComponent = () => {
           </form>
 
           <div className="withdraw-section">
-            <button
-              id="withdraw-bid"
-              className="btn"
-              onClick={handleWithdraw}
-            >
+            <button id="withdraw-bid" className="btn" onClick={handleWithdraw}>
               Withdraw (for Non-winning Bids)
             </button>
           </div>

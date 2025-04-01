@@ -89,13 +89,12 @@ const useContract = () => {
         return;
       }
       try {
-        console.log("reveall value type", typeof value);
-        console.log("reveall secret type", typeof secret);
-
         // convert value int
-        value = parseInt(value);
+        value = ethers.utils.parseEther(value.toString());
         // convert secret string to bytes32
         secret = ethers.utils.formatBytes32String(secret);
+        console.log("reveall value after conversion to wei", value);
+        console.log("reveall secret after bytes32 conversion", secret);
         const tx = await contract.reveal(value, secret);
         await tx.wait();
         await refreshContractState();
