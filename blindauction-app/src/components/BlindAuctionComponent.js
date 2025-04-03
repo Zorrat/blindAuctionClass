@@ -110,7 +110,6 @@ const BlindAuctionComponent = () => {
 
       setGeneratedBlindedBid(blindedBid);
       setBlindedBid(blindedBid); // Automatically set it in the bid form
-      setDepositEth(bidValue); // Automatically set it in the bid form
     } catch (error) {
       console.error("Error generating blinded bid:", error);
     }
