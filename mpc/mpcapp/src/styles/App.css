@@ -1,0 +1,122 @@
+.mpc-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  font-family: "Arial", sans-serif;
+  color: #333;
+  padding: 0 1rem;
+}
+
+.mpc-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Larger/darker channel info */
+.mpc-channel-info {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+/* Error & success message boxes */
+.mpc-error {
+  background: #fdd;
+  border: 1px solid #f99;
+  color: #900;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.mpc-success {
+  background: #dfd;
+  border: 1px solid #9f9;
+  color: #090;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* Two-column grid for steps */
+.mpc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 2rem;
+  position: relative;
+}
+
+/* Vertical line down center for aesthetics */
+.mpc-grid::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: #000;
+  opacity: 0.2;
+}
+
+/* Each column */
+.left-col, .right-col {
+  position: relative;
+}
+
+/* Step boxes */
+.step {
+  background: #fff;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.step h3 {
+  margin-top: 0;
+}
+
+/* Pastel backgrounds */
+.step1-blue {
+  background-color: #cbe1ff;
+}
+.step2-green,
+.step3-green,
+.step4-green {
+  background-color: #d2f9cf;
+}
+.step5-blue {
+  background-color: #cbe1ff;
+}
+
+.step input[type="number"],
+.step input[type="text"] {
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.step button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.step button:hover {
+  background: #0057cc;
+}
+
+/* Signed checks list */
+.mpc-signed-check {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  word-break: break-word;
+}
