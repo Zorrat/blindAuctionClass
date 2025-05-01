@@ -3,8 +3,13 @@ import { ethers } from "ethers";
 import useContract from "../hooks/useContract";
 
 const MPC = () => {
-  const { contract, getSender, getRecipient, claimPayment, getContractBalance } =
-    useContract();
+  const {
+    contract,
+    getSender,
+    getRecipient,
+    claimPayment,
+    getContractBalance,
+  } = useContract();
 
   const [organizer, setOrganizer] = useState("");
   const [worker, setWorker] = useState("");
@@ -25,6 +30,10 @@ const MPC = () => {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const [offChainPayments, setOffChainPayments] = useState([]);
+  const [currentVerification, setCurrentVerification] = useState("");
+  const [cumulativeAmount, setCumulativeAmount] = useState(0);
 
   const truncateAddress = (addr) => {
     if (!addr) return "";
@@ -127,7 +136,9 @@ const MPC = () => {
         ["address", "uint256"],
         [contract.address, weiAmount]
       );
-      const signature = await signer.signMessage(ethers.utils.arrayify(rawHash));
+      const signature = await signer.signMessage(
+        ethers.utils.arrayify(rawHash)
+      );
 
       setSignedChecks((prev) => [...prev, { amount: amountToSign, signature }]);
       setSuccessMessage(`Micropayment signed for ${amountToSign} ETH.`);
@@ -172,6 +183,48 @@ const MPC = () => {
     }
   };
 
+  const addVerification = () => {
+    if (!currentVerification || parseFloat(currentVerification) <= 0) {
+      setErrorMessage("Please enter a valid positive amount for verification");
+      return;
+    }
+
+    const amount = parseFloat(currentVerification);
+    const newTotal = cumulativeAmount + amount;
+
+    // Add to tracking list
+    const timestamp = new Date().toLocaleString();
+    setOffChainPayments([
+      ...offChainPayments,
+      { amount, timestamp, runningTotal: newTotal },
+    ]);
+
+    // Update cumulative amount
+    setCumulativeAmount(newTotal);
+    setCurrentVerification("");
+    setSuccessMessage(
+      `Added ${amount} ETH to running total. New total: ${newTotal} ETH`
+    );
+  };
+
+  const transferToSigning = () => {
+    if (cumulativeAmount <= 0) {
+      setErrorMessage("No accumulated payments to transfer");
+      return;
+    }
+
+    setAmountToSign(cumulativeAmount.toString());
+    setSuccessMessage(
+      `Transferred ${cumulativeAmount} ETH to signing step. Ready to create signature.`
+    );
+  };
+
+  const resetTracking = () => {
+    setOffChainPayments([]);
+    setCumulativeAmount(0);
+    setSuccessMessage("Payment tracking reset");
+  };
+
   return (
     <div className="mpc-container">
       <h1 className="mpc-title">Micropayment channel for global cleaning</h1>
@@ -180,17 +233,19 @@ const MPC = () => {
       {successMessage && <div className="mpc-success">{successMessage}</div>}
 
       <p className="mpc-channel-info">
-        <strong>{channelStatus}</strong>,{" "}
-        <strong>Organizer:</strong> {truncateAddress(organizer)} ({organizerBalance} ETH),{" "}
-        <strong>Worker:</strong> {truncateAddress(worker)} ({workerBalance} ETH),{" "}
-        <strong>Contract:</strong> {channelBalance} ETH
+        <strong>{channelStatus}</strong>, <strong>Organizer:</strong>{" "}
+        {truncateAddress(organizer)} ({organizerBalance} ETH),{" "}
+        <strong>Worker:</strong> {truncateAddress(worker)} ({workerBalance}{" "}
+        ETH), <strong>Contract:</strong> {channelBalance} ETH
       </p>
 
       <div className="mpc-grid">
         <div className="left-col">
           <div className="step step1-blue">
             <h3>1. Channel / Contract Deployed</h3>
-            <p>Organizer & Worker set, with small escrow deposit in contract.</p>
+            <p>
+              Organizer & Worker set, with small escrow deposit in contract.
+            </p>
           </div>
 
           <div className="step step3-green">
@@ -237,6 +292,34 @@ const MPC = () => {
           <div className="step step2-green">
             <h3>2. Verify containers</h3>
             <p>Placeholder instructions for verifying bins offline.</p>
+            <label>Verification amount</label>
+            <input
+              type="number"
+              step="0.0001"
+              placeholder="e.g. 0.0001"
+              value={currentVerification}
+              onChange={(e) => setCurrentVerification(e.target.value)}
+            />
+            <button onClick={addVerification}>Add verification</button>
+            <button onClick={transferToSigning}>Transfer to signing</button>
+            <button onClick={resetTracking}>Reset tracking</button>
+            <p style={{ fontStyle: "italic" }}>
+              *Track and verify payments before signing
+            </p>
+            <div>
+              <h4>Off-chain payments</h4>
+              {offChainPayments.length === 0 ? (
+                <p>No payments tracked yet.</p>
+              ) : (
+                offChainPayments.map((payment, idx) => (
+                  <div key={idx} className="mpc-offchain-payment">
+                    <p>Amount: {payment.amount} ETH</p>
+                    <p>Timestamp: {payment.timestamp}</p>
+                    <p>Running Total: {payment.runningTotal} ETH</p>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           <div className="step step4-green">

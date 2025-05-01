@@ -61,7 +61,8 @@
 }
 
 /* Each column */
-.left-col, .right-col {
+.left-col,
+.right-col {
   position: relative;
 }
 
@@ -71,7 +72,7 @@
   border-radius: 6px;
   padding: 1rem;
   margin-bottom: 1rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 .step h3 {
   margin-top: 0;
@@ -119,4 +120,54 @@
   border-radius: 4px;
   margin-top: 0.5rem;
   word-break: break-word;
+}
+
+/* Add these styles at the end of your CSS file */
+
+.verification-form {
+  margin-bottom: 15px;
+}
+
+.verification-form label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.verification-summary {
+  display: flex;
+  flex-direction: column;
+  margin: 15px 0;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
+.verification-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.verification-history {
+  margin-top: 20px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.verification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.verification-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border-left: 3px solid #28a745;
+  background-color: #f8f9fa;
+}
+
+.verification-item span {
+  font-size: 0.9em;
 }

@@ -22,3 +22,8 @@ ignition/deployments/chain-31337
 
 ./blindauction-contract/.env
 ./blindauction-contract/node_modules/
+
+./mpc/mpcapp/node_modules/
+./mpc/mpccontract/node_modules/
+
+
