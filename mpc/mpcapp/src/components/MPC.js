@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { ethers } from "ethers";
 import useContract from "../hooks/useContract";
+import { paymentService } from "../services/paymentService";
 
 const MPC = () => {
   const {
@@ -116,6 +117,25 @@ const MPC = () => {
     }
   }, [provider, contract, fetchData]);
 
+  useEffect(() => {
+    const loadPayments = async () => {
+      if (contract) {
+        try {
+          const channelId = contract.address;
+          const payments = await paymentService.getPayments(channelId);
+          setOffChainPayments(payments);
+
+          const total = await paymentService.getTotal(channelId);
+          setCumulativeAmount(total);
+        } catch (error) {
+          console.error("Failed to load payments", error);
+        }
+      }
+    };
+
+    loadPayments();
+  }, [contract]);
+
   const handleSignMessage = async () => {
     setErrorMessage("");
     setSuccessMessage("");
@@ -183,28 +203,34 @@ const MPC = () => {
     }
   };
 
-  const addVerification = () => {
+  const addVerification = async () => {
     if (!currentVerification || parseFloat(currentVerification) <= 0) {
       setErrorMessage("Please enter a valid positive amount for verification");
       return;
     }
 
     const amount = parseFloat(currentVerification);
-    const newTotal = cumulativeAmount + amount;
 
-    // Add to tracking list
-    const timestamp = new Date().toLocaleString();
-    setOffChainPayments([
-      ...offChainPayments,
-      { amount, timestamp, runningTotal: newTotal },
-    ]);
+    try {
+      if (!contract) {
+        setErrorMessage("Contract not loaded");
+        return;
+      }
 
-    // Update cumulative amount
-    setCumulativeAmount(newTotal);
-    setCurrentVerification("");
-    setSuccessMessage(
-      `Added ${amount} ETH to running total. New total: ${newTotal} ETH`
-    );
+      const channelId = contract.address;
+      const payment = await paymentService.addPayment(channelId, amount);
+
+      // Add to UI list
+      setOffChainPayments([...offChainPayments, payment]);
+      setCumulativeAmount(payment.runningTotal);
+      setCurrentVerification("");
+      setSuccessMessage(
+        `Added ${amount} ETH to running total. New total: ${payment.runningTotal} ETH`
+      );
+    } catch (error) {
+      console.error("Failed to add verification", error);
+      setErrorMessage("Failed to record payment: " + error.message);
+    }
   };
 
   const transferToSigning = () => {
@@ -219,10 +245,23 @@ const MPC = () => {
     );
   };
 
-  const resetTracking = () => {
-    setOffChainPayments([]);
-    setCumulativeAmount(0);
-    setSuccessMessage("Payment tracking reset");
+  const resetTracking = async () => {
+    try {
+      if (!contract) {
+        setErrorMessage("Contract not loaded");
+        return;
+      }
+
+      const channelId = contract.address;
+      await paymentService.resetPayments(channelId);
+
+      setOffChainPayments([]);
+      setCumulativeAmount(0);
+      setSuccessMessage("Payment tracking reset");
+    } catch (error) {
+      console.error("Failed to reset tracking", error);
+      setErrorMessage("Failed to reset payments: " + error.message);
+    }
   };
 
   return (
